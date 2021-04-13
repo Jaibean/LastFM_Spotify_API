@@ -3,6 +3,8 @@ from pprint import pprint
 import requests
 import secrets
 
+import sys
+
 
 class lastFmSpotify:
     def __init__(self):
@@ -22,15 +24,22 @@ class lastFmSpotify:
         # print(response.content)
         # print(response.status_code)
         if response.status_code != 200:
-            print("ERROR")
+            self.exceptionalExceptions(response.status_code, response.text())
         res = response.json()
+        print("Top Songs are: ")
         for item in res['tracks']['track']:
             song = item['name'].title()
             artist = item['artist']['name'].title()
+            print(f"{song} by {artist}")
             self.song_info[song] = artist
+        print("Getting Songs URI\n")
         self.get_uri_from_spotify()
+        print("Creating a playlist\n")
         self.create_spotify_playlist()
+        print("Adding Songs!\n")
         self.add_songs_to_playlist()
+        print("Sings are as follows: \n")
+        self.list_songs_in_playlist()
 
     def get_uri_from_spotify(self):
         for song_name, artist in self.song_info.items():
@@ -52,9 +61,10 @@ class lastFmSpotify:
         response = requests.post(url, data=data, headers=self.spotify_headers)
         if response.status_code == 201:
             res = response.json()
+            print("Playlist Created")
             self.playlist_id = res['id']
         else:
-            print(response.content)
+            self.exceptionalExceptions(response.status_code, response.text())
 
     def add_songs_to_playlist(self):
         uri_list = json.dumps(self.uris)
@@ -62,9 +72,23 @@ class lastFmSpotify:
         response = requests.post(url, data=uri_list, headers=self.spotify_headers)
         if response.status_code == 201:
             print("Songs Added Successfully.")
+        else:
+            self.exceptionalExceptions(response.status_code, response.text())
 
     def list_songs_in_playlist(self):
-        pass
+        url = f"https://api.spotify.com/v1/playlists/{self.playlist_id}/tracks"
+        response = requests.get(url, headers=self.spotify_headers)
+        if response.status_code != 200:
+            self.exceptionalExceptions(response.status_code, response.text())
+        else:
+            res = response.json()
+            for item in res['items']:
+                print(item['track']['name'])
+
+    def exceptionalExceptions(self, status_code, err):
+        print("Exception Occurred with status_code", status_code)
+        print("Error: ", err)
+        sys.exit(0)
 
 
 Obj = lastFmSpotify()
