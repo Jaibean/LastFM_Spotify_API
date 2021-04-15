@@ -24,36 +24,39 @@ class lastFmSpotify:
         # print(response.content)
         # print(response.status_code)
         if response.status_code != 200:
-            self.exceptionalExceptions(response.status_code, response.text())
+            self.exceptionalExceptions(response.status_code, response.text)
         res = response.json()
-        print("Top Songs are: ")
+        song_info = dict()
         for item in res['tracks']['track']:
             song = item['name'].title()
             artist = item['artist']['name'].title()
-            print(f"{song} by {artist}")
-            self.song_info[song] = artist
-        print("Getting Songs URI\n")
+            # print(f"{song} by {artist}")
+            song_info[song] = artist
+        return song_info
+        """print("Getting Songs URI\n")
         self.get_uri_from_spotify()
         print("Creating a playlist\n")
         self.create_spotify_playlist()
         print("Adding Songs!\n")
         self.add_songs_to_playlist()
         print("Sings are as follows: \n")
-        self.list_songs_in_playlist()
+        self.list_songs_in_playlist()"""
 
-    def get_uri_from_spotify(self):
-        for song_name, artist in self.song_info.items():
+    def get_uri_from_spotify(self, song_info):
+        uri_list = []
+        for song_name, artist in song_info.items():
             url = f"https://api.spotify.com/v1/search?query=track%3A{song_name}+artist%3A{artist}&type=track&offset=0&limit=20"
             response = requests.get(url, headers=self.spotify_headers)
             res = response.json()
             output_uri = res['tracks']['items']
             uri = output_uri[0]['uri']
-            self.uris.append(uri)
+            uri_list.append(uri)
+        return uri_list
 
-    def create_spotify_playlist(self):
+    def create_spotify_playlist(self, name, desc):
         data = {
-            "name": "LastFM top songs",
-            "description": "Songs from the top charts of Last FM created via an API",
+            "name": name,
+            "description": desc,
             "public": True
         }
         data = json.dumps(data)
@@ -62,28 +65,30 @@ class lastFmSpotify:
         if response.status_code == 201:
             res = response.json()
             print("Playlist Created")
-            self.playlist_id = res['id']
+            return res['id']
         else:
-            self.exceptionalExceptions(response.status_code, response.text())
+            self.exceptionalExceptions(response.status_code, response.text)
 
-    def add_songs_to_playlist(self):
-        uri_list = json.dumps(self.uris)
-        url = f"https://api.spotify.com/v1/playlists/{self.playlist_id}/tracks"
+    def add_songs_to_playlist(self, id, uris):
+        uri_list = json.dumps(uris)
+        url = f"https://api.spotify.com/v1/playlists/{id}/tracks"
         response = requests.post(url, data=uri_list, headers=self.spotify_headers)
         if response.status_code == 201:
-            print("Songs Added Successfully.")
+            return "Songs Added Successfully."
         else:
-            self.exceptionalExceptions(response.status_code, response.text())
+            self.exceptionalExceptions(response.status_code, response.text)
 
-    def list_songs_in_playlist(self):
-        url = f"https://api.spotify.com/v1/playlists/{self.playlist_id}/tracks"
+    def list_songs_in_playlist(self, id):
+        url = f"https://api.spotify.com/v1/playlists/{id}/tracks"
         response = requests.get(url, headers=self.spotify_headers)
         if response.status_code != 200:
-            self.exceptionalExceptions(response.status_code, response.text())
+            self.exceptionalExceptions(response.status_code, response.text)
         else:
             res = response.json()
+            songs = []
             for item in res['items']:
-                print(item['track']['name'])
+                songs.append(item['track']['name'])
+            return songs
 
     def exceptionalExceptions(self, status_code, err):
         print("Exception Occurred with status_code", status_code)
@@ -91,5 +96,4 @@ class lastFmSpotify:
         sys.exit(0)
 
 
-Obj = lastFmSpotify()
-Obj.fetch_songs_from_lastfm()
+
