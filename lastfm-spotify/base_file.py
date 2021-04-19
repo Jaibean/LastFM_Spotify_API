@@ -33,14 +33,6 @@ class lastFmSpotify:
             # print(f"{song} by {artist}")
             song_info[song] = artist
         return song_info
-        """print("Getting Songs URI\n")
-        self.get_uri_from_spotify()
-        print("Creating a playlist\n")
-        self.create_spotify_playlist()
-        print("Adding Songs!\n")
-        self.add_songs_to_playlist()
-        print("Sings are as follows: \n")
-        self.list_songs_in_playlist()"""
 
     def get_uri_from_spotify(self, song_info):
         uri_list = []
@@ -94,6 +86,3 @@ class lastFmSpotify:
         print("Exception Occurred with status_code", status_code)
         print("Error: ", err)
         sys.exit(0)
-
-
-

@@ -18,9 +18,7 @@ def hello_world():
 @app.route('/top', methods=['GET', 'POST'])
 def top_songs():
     if request.method =='GET':
-        topsongs = obj.fetch_songs_from_lastfm()
         return render_template("index.html", topsongs=topsongs, template='top')
-
     else:
         if 'id' in session.keys():
             uri = obj.get_uri_from_spotify(topsongs)
@@ -30,11 +28,11 @@ def top_songs():
         return redirect('/create')
 
 
-@app.route('/view' )
+@app.route('/view')
 def view_songs():
     if 'id' in session.keys():
         songs = obj.list_songs_in_playlist(session['id'])
-        return render_template("index.html", songs=song, template='view')
+        return render_template("index.html", songs=songs, template='view')
     return redirect('/create')
 
 
